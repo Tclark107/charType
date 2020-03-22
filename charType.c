@@ -1,25 +1,9 @@
 //-----------------------------------------------------------------------------
-// alphaNum.c
-// extracts alpha-numeric characters from each line of the input file
-// and places them in the output file.
-//
-// Recall the program FileIO.c from lab3 used fscanf to parse words in
-// a file and then process them.  However the function fscanf is not
-// appropriate when you want to read an entire line from a file as a
-// string.  In this program we use another IO function from stdio.h called 
-// fgets() for this purpose.  Its prototype is:
-//
-//         char* fgets(char* s, int n, FILE* stream);
-//
-// fgets() reads up to n-1 characters from stream and places them in
-// the character array ponted to by s.  Characters are read until either
-// a newline or an EOF is read, or until the specified limit is reached.
-// After the characters have been read, a null character '\0' is placed
-// in the array immediately after the last character read.  A newline
-// character in stream will be retained and placed in s.  If successful,
-// fgets() returns the string s, and a NULL pointer is returned upon
-// failure.  See fgets in section 3c of the unix man pages for more.
-//
+// charType.c
+// This is a small exercise in proper handling of memory allocation and freeing
+// heap space.  The algorithm seems a little hacky, but it works. It still runs
+// in N time.
+// Tristan Clark
 //-----------------------------------------------------------------------------
 
 #include<stdio.h>
@@ -28,6 +12,12 @@
 #include<assert.h>
 
 #define MAX_STRING_LENGTH 100
+
+// global variables
+int alphacount = 0;
+int numcount = 0;
+int punccount = 0;
+int spacecount = 0;
 
 // function prototype 
 void extract_chars(char* s, char* a, char* d, char* p, char* w);
@@ -40,7 +30,8 @@ int main(int argc, char* argv[]){
    char* alpha;      // string holding all alphabet chars
    char* num;        // string holding all numeric chars
    char* punc;       // string holding all punctuation chars
-   char* space;      // string holding all whitespace chars 
+   char* space;      // string holding all whitespace chars
+   int linecount = 1; 
 
    // check command line for correct number of arguments 
    if( argc != 3 ){
@@ -62,18 +53,34 @@ int main(int argc, char* argv[]){
 
    // allocate strings line and alpha_num on the heap 
    line = calloc(MAX_STRING_LENGTH+1, sizeof(char) );
-   alpha_num = calloc(MAX_STRING_LENGTH+1, sizeof(char) );
-   assert( line!=NULL && alpha_num!=NULL );
+   alpha = calloc(MAX_STRING_LENGTH+1, sizeof(char) );
+   num = calloc(MAX_STRING_LENGTH+1, sizeof(char) );
+   punc = calloc(MAX_STRING_LENGTH+1, sizeof(char) );
+   space = calloc(MAX_STRING_LENGTH+1, sizeof(char) );
+   assert( line!=NULL && alpha!=NULL && num!=NULL &&
+           punc!=NULL && space!=NULL );
 
    // read each line in input file, extract alpha-numeric characters 
    while( fgets(line, MAX_STRING_LENGTH, in) != NULL ){
+      fprintf(out, "line %d contains: \n", linecount);
       extract_chars(line, alpha, num, punc, space);
-      fprintf(out, "%s\n", alpha);
+      fprintf(out, "%d alphabetic characters: %s\n", alphacount, alpha);
+      fprintf(out, "%d numeric characters: %s\n", numcount, num);
+      fprintf(out, "%d punctiation characters: %s\n", punccount, punc);
+      fprintf(out, "%d whitespace characters: %s\n", spacecount, space);
+      linecount++;
+      alphacount = 0;
+      numcount = 0;
+      spacecount = 0;
+      punccount = 0;
    }
 
    // free heap memory 
    free(line);
-   free(alpha_num);
+   free(alpha);
+   free(num);
+   free(punc);
+   free(space);
 
    // close input and output files 
    fclose(in);
@@ -84,10 +91,25 @@ int main(int argc, char* argv[]){
 
 // function definition 
 void extract_chars(char* s, char* a, char* d, char* p, char* w){
-   int i=0, j=0;
+   int i=0, alphaiter=0, numiter=0, punciter=0, spaceiter=0;
    while(s[i]!='\0' && i<MAX_STRING_LENGTH){
-      if( isalnum( (int) s[i]) ) a[j++] = s[i];
+      if( isalpha( (int) s[i]) ) {
+         a[alphaiter++] = s[i];
+         alphacount++;
+      } else if (isdigit((int)s[i])) {
+         d[numiter++] = s[i];
+         numcount++;
+      } else if (ispunct((int)s[i])) {
+         p[punciter++] = s[i];
+         punccount++;
+      } else if (isspace((int)s[i])) {
+         w[spaceiter++] = s[i];
+         spacecount++;
+      }
       i++;
    }
-   a[j] = '\0';
+   a[alphaiter] = '\0';
+   d[numiter] = '\0';
+   p[punciter] = '\0';
+   w[spaceiter] = '\0';
 }
