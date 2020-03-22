@@ -1,0 +1,7 @@
+This was an excercise the the proper handling of memory allocation and 
+freeing on heap storage.  The algorithm will read an input file line
+by line and and then go to each character and keep track of what type 
+it is.  It then adds them to their own array and prints out the amount.
+My algorithm seems a little hacky as I use a different counter and iterator
+for each type _         _
+	       \_('_')_/
